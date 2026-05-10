@@ -1,0 +1,697 @@
+<!DOCTYPE html>
+<html lang="en" class="scroll-smooth">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>xGameBuilder | Build Your Dream Game</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Chakra+Petch:wght@300;400;500;600;700&family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: {
+                        'display': ['Chakra Petch', 'sans-serif'],
+                        'body': ['Inter', 'sans-serif'],
+                    },
+                    colors: {
+                        'neon-blue': '#00d4ff',
+                        'neon-purple': '#b829dd',
+                        'neon-cyan': '#00fff9',
+                        'deep-space': '#050508',
+                        'void': '#0a0a0f',
+                        'accent': '#ff006e',
+                        'blood': '#ff2a2a',
+                    },
+                    animation: {
+                        'pulse-slow': 'pulse 4s cubic-bezier(0.4, 0, 0.6, 1) infinite',
+                        'scan': 'scan 4s linear infinite',
+                    },
+                    keyframes: {
+                        scan: {
+                            '0%': { top: '-10%' },
+                            '100%': { top: '110%' },
+                        }
+                    },
+                },
+            },
+        }
+    </script>
+    <style>
+        body {
+            background-color: #050508;
+            color: white;
+            overflow-x: hidden;
+        }
+        
+        .gradient-text {
+            background: linear-gradient(135deg, #00d4ff 0%, #b829dd 50%, #ff006e 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+        
+        .glass-panel {
+            background: rgba(10, 10, 15, 0.85);
+            backdrop-filter: blur(20px);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+        }
+        
+        .game-card {
+            transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+            overflow: hidden;
+        }
+        
+        .game-card:hover {
+            transform: translateY(-8px) scale(1.02);
+        }
+        
+        .game-card:hover .card-overlay {
+            opacity: 1;
+        }
+        
+        .game-card:hover img {
+            transform: scale(1.1);
+        }
+        
+        .card-overlay {
+            opacity: 0;
+            transition: opacity 0.4s ease;
+        }
+        
+        .scanline {
+            position: absolute;
+            width: 100%;
+            height: 2px;
+            background: linear-gradient(to right, transparent, #00d4ff, transparent);
+            opacity: 0.5;
+            animation: scan 3s linear infinite;
+            pointer-events: none;
+        }
+        
+        .noise {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            opacity: 0.03;
+            z-index: 50;
+            background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)'/%3E%3C/svg%3E");
+        }
+        
+        .scroll-reveal {
+            opacity: 0;
+            transform: translateY(40px);
+            transition: all 0.8s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+        
+        .scroll-reveal.active {
+            opacity: 1;
+            transform: translateY(0);
+        }
+        
+        .platform-badge {
+            transition: all 0.3s ease;
+        }
+        
+        .platform-badge:hover {
+            transform: scale(1.1);
+            box-shadow: 0 0 20px rgba(0, 212, 255, 0.3);
+        }
+        
+        .agent-icon {
+            transition: all 0.3s ease;
+        }
+        
+        .agent-card:hover .agent-icon {
+            transform: scale(1.15) rotate(5deg);
+        }
+        
+        .waitlist-input:focus {
+            box-shadow: 0 0 0 2px rgba(0, 212, 255, 0.5), 0 0 20px rgba(0, 212, 255, 0.2);
+        }
+        
+        .rarity-glow {
+            box-shadow: 0 0 30px rgba(184, 41, 221, 0.4), inset 0 0 30px rgba(0, 212, 255, 0.1);
+        }
+    </style>
+</head>
+<body class="font-body antialiased selection:bg-neon-blue selection:text-black">
+
+    <div class="noise"></div>
+
+    <!-- Navigation -->
+    <nav class="fixed top-0 w-full z-50 glass-panel border-b border-white/10">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex justify-between items-center h-20">
+                <div class="flex items-center space-x-3">
+                    <div class="w-10 h-10 rounded-lg bg-gradient-to-br from-neon-blue to-neon-purple flex items-center justify-center border border-white/20">
+                        <span class="font-display font-bold text-xl text-white">x</span>
+                    </div>
+                    <span class="font-display font-bold text-2xl tracking-wider text-white">GameBuilder</span>
+                </div>
+                
+                <div class="hidden md:flex items-center space-x-10">
+                    <a href="#games" class="text-gray-300 hover:text-neon-cyan transition-colors text-sm font-display font-semibold uppercase tracking-widest">Games</a>
+                    <a href="#agents" class="text-gray-300 hover:text-neon-cyan transition-colors text-sm font-display font-semibold uppercase tracking-widest">AI Agents</a>
+                    <a href="#tech" class="text-gray-300 hover:text-neon-cyan transition-colors text-sm font-display font-semibold uppercase tracking-widest">Tech</a>
+                    <a href="#demo" class="text-gray-300 hover:text-neon-cyan transition-colors text-sm font-display font-semibold uppercase tracking-widest">Demo</a>
+                </div>
+
+                <div class="flex items-center space-x-4">
+                    <a href="https://demo.xgamebuilder.com" target="_blank" class="hidden md:flex items-center px-5 py-2 rounded-full border border-neon-cyan/50 text-neon-cyan hover:bg-neon-cyan/10 transition-all text-sm font-display font-bold uppercase tracking-wider">
+                        <span class="w-2 h-2 bg-neon-cyan rounded-full mr-2 animate-pulse"></span>
+                        Play Demo
+                    </a>
+                    <a href="#waitlist" class="px-6 py-2.5 rounded-full bg-gradient-to-r from-neon-blue to-neon-purple text-white font-display font-bold uppercase tracking-wider hover:shadow-lg hover:shadow-neon-blue/50 transition-all transform hover:scale-105 text-sm">
+                        Get Early Access
+                    </a>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Hero Section - Cinematic Game Visual -->
+    <section class="relative min-h-screen flex items-end pb-20 pt-32 overflow-hidden">
+        <!-- Background Game Image -->
+        <div class="absolute inset-0 z-0">
+            <img src="https://cdn.80.lv/api/upload/post/4400/images/5d2cb779e840d/contain_1200x630.jpg" 
+                 alt="Epic Fantasy Environment" 
+                 class="w-full h-full object-cover object-center">
+            <div class="absolute inset-0 bg-gradient-to-t from-[#050508] via-[#050508]/70 to-transparent"></div>
+            <div class="absolute inset-0 bg-gradient-to-r from-[#050508]/80 to-transparent"></div>
+            <div class="scanline"></div>
+        </div>
+
+        <div class="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 w-full">
+            <div class="max-w-3xl">
+                <div class="flex items-center space-x-3 mb-6">
+                    <span class="px-3 py-1 rounded bg-blood/20 border border-blood/40 text-blood text-xs font-display font-bold uppercase tracking-widest">Autonomous AAA Engine</span>
+                    <span class="px-3 py-1 rounded bg-neon-blue/10 border border-neon-blue/30 text-neon-blue text-xs font-display font-bold uppercase tracking-widest">AI-Powered</span>
+                </div>
+                
+                <h1 class="font-display font-bold text-5xl md:text-7xl lg:text-8xl leading-[0.95] mb-6 text-white drop-shadow-2xl">
+                    YOUR IDEA.<br>
+                    <span class="gradient-text">YOUR GAME.</span><br>
+                    <span class="text-white/90">AAA QUALITY.</span>
+                </h1>
+                
+                <p class="text-xl md:text-2xl text-gray-300 mb-10 leading-relaxed max-w-2xl font-light">
+                    Type your concept. Watch 6 AI agents build your dream game in real-time. 
+                    Photorealistic worlds, unique characters, full gameplay — generated from scratch.
+                </p>
+                
+                <div class="flex flex-col sm:flex-row items-start gap-4 mb-12">
+                    <a href="https://demo.xgamebuilder.com" target="_blank" class="group relative px-10 py-4 rounded-lg bg-white text-black font-display font-bold text-lg hover:bg-gray-100 transition-all transform hover:scale-105 flex items-center tracking-wide">
+                        <svg class="w-6 h-6 mr-3" fill="currentColor" viewBox="0 0 24 24">
+                            <path d="M8 5v14l11-7z"/>
+                        </svg>
+                        <span>PLAY THE DEMO</span>
+                    </a>
+                    <a href="#waitlist" class="px-10 py-4 rounded-lg glass-panel border border-white/20 text-white font-display font-bold text-lg hover:border-neon-blue/50 hover:bg-neon-blue/5 transition-all tracking-wide">
+                        JOIN WAITLIST
+                    </a>
+                </div>
+
+                <!-- Platform Badges -->
+                <div class="flex items-center space-x-4">
+                    <span class="text-gray-500 text-xs font-display uppercase tracking-widest">Ships to:</span>
+                    <div class="platform-badge w-10 h-10 rounded-lg bg-white/5 border border-white/10 flex items-center justify-center cursor-pointer" title="PC">
+                        <svg class="w-5 h-5 text-gray-400" fill="currentColor" viewBox="0 0 24 24"><path d="M20 18c1.1 0 1.99-.9 1.99-2L22 6c0-1.1-.9-2-2-2H4c-1.1 0-2 .9-2 2v10c0 1.1.9 2 2 2H0v2h24v-2h-4zM4 6h16v10H4V6z"/></svg>
+                    </div>
+                    <div class="platform-badge w-10 h-10 rounded-lg bg-white/5 border border-white/10 flex items-center justify-center cursor-pointer" title="PlayStation">
+                        <svg class="w-5 h-5 text-gray-400" fill="currentColor" viewBox="0 0 24 24"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-1 14.5v-9l6 4.5-6 4.5z"/></svg>
+                    </div>
+                    <div class="platform-badge w-10 h-10 rounded-lg bg-white/5 border border-white/10 flex items-center justify-center cursor-pointer" title="Xbox">
+                        <svg class="w-5 h-5 text-gray-400" fill="currentColor" viewBox="0 0 24 24"><path d="M6 19h4V5H6v14zm8-14v14h4V5h-4z"/></svg>
+                    </div>
+                    <div class="platform-badge w-10 h-10 rounded-lg bg-white/5 border border-white/10 flex items-center justify-center cursor-pointer" title="Switch">
+                        <svg class="w-5 h-5 text-gray-400" fill="currentColor" viewBox="0 0 24 24"><path d="M20 8.69V4h-4.69L12 .69 8.69 4H4v4.69L.69 12 4 15.31V20h4.69L12 23.31 15.31 20H20v-4.69L23.31 12 20 8.69zM12 18c-3.31 0-6-2.69-6-6s2.69-6 6-6 6 2.69 6 6-2.69 6-6 6zm0-10c-2.21 0-4 1.79-4 4s1.79 4 4 4 4-1.79 4-4-1.79-4-4-4z"/></svg>
+                    </div>
+                    <div class="platform-badge w-10 h-10 rounded-lg bg-white/5 border border-white/10 flex items-center justify-center cursor-pointer" title="Mobile">
+                        <svg class="w-5 h-5 text-gray-400" fill="currentColor" viewBox="0 0 24 24"><path d="M17 1.01L7 1c-1.1 0-2 .9-2 2v18c0 1.1.9 2 2 2h10c1.1 0 2-.9 2-2V3c0-1.1-.9-1.99-2-1.99zM17 19H7V5h10v14z"/></svg>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Featured Games Grid -->
+    <section id="games" class="relative py-24 overflow-hidden">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex items-end justify-between mb-12 scroll-reveal">
+                <div>
+                    <span class="text-neon-blue font-display font-bold uppercase tracking-widest text-sm mb-2 block">AI-Generated Worlds</span>
+                    <h2 class="font-display font-bold text-4xl md:text-5xl text-white">Games Born from <span class="gradient-text">Prompts</span></h2>
+                </div>
+                <p class="hidden md:block text-gray-400 max-w-md text-right">Every screenshot below was generated by xGameBuilder's AI agents. No two games are ever the same.</p>
+            </div>
+
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                <!-- Game Card 1: Fantasy -->
+                <div class="game-card relative rounded-2xl overflow-hidden aspect-[4/5] group cursor-pointer scroll-reveal">
+                    <img src="https://thumbs.dreamstime.com/b/epic-fantasy-landscape-breathtaking-scenery-382837846.jpg" 
+                         alt="Fantasy RPG World" 
+                         class="w-full h-full object-cover transition-transform duration-700">
+                    <div class="absolute inset-0 bg-gradient-to-t from-black via-black/40 to-transparent opacity-80"></div>
+                    <div class="card-overlay absolute inset-0 bg-neon-blue/20 flex items-center justify-center">
+                        <span class="px-6 py-3 rounded-full bg-white/10 backdrop-blur-md border border-white/30 text-white font-display font-bold uppercase tracking-wider">View Build Log</span>
+                    </div>
+                    <div class="absolute bottom-0 left-0 right-0 p-6">
+                        <div class="flex items-center space-x-2 mb-2">
+                            <span class="px-2 py-0.5 rounded bg-purple-500/20 border border-purple-500/40 text-purple-400 text-xs font-display font-bold">RPG</span>
+                            <span class="px-2 py-0.5 rounded bg-blue-500/20 border border-blue-500/40 text-blue-400 text-xs font-display font-bold">OPEN WORLD</span>
+                        </div>
+                        <h3 class="font-display font-bold text-2xl text-white mb-1">Aether Chronicles</h3>
+                        <p class="text-gray-400 text-sm font-light">Prompt: "Epic fantasy RPG with Norse mythology, photorealistic forests, and dragon combat"</p>
+                        <div class="flex items-center mt-4 space-x-4 text-xs text-gray-500 font-display uppercase tracking-wider">
+                            <span class="flex items-center"><svg class="w-4 h-4 mr-1" fill="currentColor" viewBox="0 0 24 24"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z"/></svg> 4K Assets</span>
+                            <span class="flex items-center"><svg class="w-4 h-4 mr-1" fill="currentColor" viewBox="0 0 24 24"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z"/></svg> 60 FPS</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Game Card 2: Cyberpunk Character -->
+                <div class="game-card relative rounded-2xl overflow-hidden aspect-[4/5] group cursor-pointer scroll-reveal" style="transition-delay: 100ms;">
+                    <img src="https://cdna.artstation.com/p/assets/images/images/084/381/498/large/aaa-game-art-studio-a-1-ni.jpg?1738232418" 
+                         alt="Cyberpunk Character" 
+                         class="w-full h-full object-cover transition-transform duration-700">
+                    <div class="absolute inset-0 bg-gradient-to-t from-black via-black/40 to-transparent opacity-80"></div>
+                    <div class="card-overlay absolute inset-0 bg-neon-purple/20 flex items-center justify-center">
+                        <span class="px-6 py-3 rounded-full bg-white/10 backdrop-blur-md border border-white/30 text-white font-display font-bold uppercase tracking-wider">View Build Log</span>
+                    </div>
+                    <div class="absolute bottom-0 left-0 right-0 p-6">
+                        <div class="flex items-center space-x-2 mb-2">
+                            <span class="px-2 py-0.5 rounded bg-pink-500/20 border border-pink-500/40 text-pink-400 text-xs font-display font-bold">ACTION</span>
+                            <span class="px-2 py-0.5 rounded bg-cyan-500/20 border border-cyan-500/40 text-cyan-400 text-xs font-display font-bold">CYBERPUNK</span>
+                        </div>
+                        <h3 class="font-display font-bold text-2xl text-white mb-1">Neon Shadows</h3>
+                        <p class="text-gray-400 text-sm font-light">Prompt: "Cyberpunk bounty hunter game with ray-traced neon cities and parkour mechanics"</p>
+                        <div class="flex items-center mt-4 space-x-4 text-xs text-gray-500 font-display uppercase tracking-wider">
+                            <span class="flex items-center"><svg class="w-4 h-4 mr-1" fill="currentColor" viewBox="0 0 24 24"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z"/></svg> RTX ON</span>
+                            <span class="flex items-center"><svg class="w-4 h-4 mr-1" fill="currentColor" viewBox="0 0 24 24"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z"/></svg> DLSS 3</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Game Card 3: Sci-Fi Environment -->
+                <div class="game-card relative rounded-2xl overflow-hidden aspect-[4/5] group cursor-pointer scroll-reveal" style="transition-delay: 200ms;">
+                    <img src="https://storage.ghost.io/c/ce/e4/cee41318-cfc3-441e-8a96-e50288509fa4/content/images/size/w2000/2022/09/DBU01_CoverHD.jpg" 
+                         alt="Sci-Fi Space Station" 
+                         class="w-full h-full object-cover transition-transform duration-700">
+                    <div class="absolute inset-0 bg-gradient-to-t from-black via-black/40 to-transparent opacity-80"></div>
+                    <div class="card-overlay absolute inset-0 bg-neon-cyan/20 flex items-center justify-center">
+                        <span class="px-6 py-3 rounded-full bg-white/10 backdrop-blur-md border border-white/30 text-white font-display font-bold uppercase tracking-wider">View Build Log</span>
+                    </div>
+                    <div class="absolute bottom-0 left-0 right-0 p-6">
+                        <div class="flex items-center space-x-2 mb-2">
+                            <span class="px-2 py-0.5 rounded bg-cyan-500/20 border border-cyan-500/40 text-cyan-400 text-xs font-display font-bold">HORROR</span>
+                            <span class="px-2 py-0.5 rounded bg-blue-500/20 border border-blue-500/40 text-blue-400 text-xs font-display font-bold">SCI-FI</span>
+                        </div>
+                        <h3 class="font-display font-bold text-2xl text-white mb-1">Station 7</h3>
+                        <p class="text-gray-400 text-sm font-light">Prompt: "Survival horror on abandoned space station with realistic zero-G physics"</p>
+                        <div class="flex items-center mt-4 space-x-4 text-xs text-gray-500 font-display uppercase tracking-wider">
+                            <span class="flex items-center"><svg class="w-4 h-4 mr-1" fill="currentColor" viewBox="0 0 24 24"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z"/></svg> Proprietary Engine</span>
+                            <span class="flex items-center"><svg class="w-4 h-4 mr-1" fill="currentColor" viewBox="0 0 24 24"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z"/></svg> Real-Time GI</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Game Card 4: Open World RPG -->
+                <div class="game-card relative rounded-2xl overflow-hidden aspect-[4/5] group cursor-pointer scroll-reveal">
+                    <img src="https://blog-uploads.eneba.games/uploads/2026/01/horizon-zero-dawn-picking-up-flower.jpg" 
+                         alt="Open World Exploration" 
+                         class="w-full h-full object-cover transition-transform duration-700">
+                    <div class="absolute inset-0 bg-gradient-to-t from-black via-black/40 to-transparent opacity-80"></div>
+                    <div class="card-overlay absolute inset-0 bg-green-500/20 flex items-center justify-center">
+                        <span class="px-6 py-3 rounded-full bg-white/10 backdrop-blur-md border border-white/30 text-white font-display font-bold uppercase tracking-wider">View Build Log</span>
+                    </div>
+                    <div class="absolute bottom-0 left-0 right-0 p-6">
+                        <div class="flex items-center space-x-2 mb-2">
+                            <span class="px-2 py-0.5 rounded bg-green-500/20 border border-green-500/40 text-green-400 text-xs font-display font-bold">ADVENTURE</span>
+                            <span class="px-2 py-0.5 rounded bg-yellow-500/20 border border-yellow-500/40 text-yellow-400 text-xs font-display font-bold">POST-APOC</span>
+                        </div>
+                        <h3 class="font-display font-bold text-2xl text-white mb-1">Wild Horizon</h3>
+                        <p class="text-gray-400 text-sm font-light">Prompt: "Open world survival with robotic creatures, lush overgrown cities, and bow combat"</p>
+                        <div class="flex items-center mt-4 space-x-4 text-xs text-gray-500 font-display uppercase tracking-wider">
+                            <span class="flex items-center"><svg class="w-4 h-4 mr-1" fill="currentColor" viewBox="0 0 24 24"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z"/></svg> 100km²</span>
+                            <span class="flex items-center"><svg class="w-4 h-4 mr-1" fill="currentColor" viewBox="0 0 24 24"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z"/></svg> Dynamic Weather</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Game Card 5: Character Art -->
+                <div class="game-card relative rounded-2xl overflow-hidden aspect-[4/5] group cursor-pointer scroll-reveal" style="transition-delay: 100ms;">
+                    <img src="https://cdn.fastpixel.io/fp/ret_img+v_fde7+sc_0x0:1600x778:1152x560+q_lossless+to_webp/aaagameartstudio.com%2Fwp-content%2Fuploads%2F2025%2F04%2FMonk-Black-Myths-setting-3D-character-aaa-game-art-studio.jpg" 
+                         alt="AAA Character Render" 
+                         class="w-full h-full object-cover transition-transform duration-700">
+                    <div class="absolute inset-0 bg-gradient-to-t from-black via-black/40 to-transparent opacity-80"></div>
+                    <div class="card-overlay absolute inset-0 bg-orange-500/20 flex items-center justify-center">
+                        <span class="px-6 py-3 rounded-full bg-white/10 backdrop-blur-md border border-white/30 text-white font-display font-bold uppercase tracking-wider">View Build Log</span>
+                    </div>
+                    <div class="absolute bottom-0 left-0 right-0 p-6">
+                        <div class="flex items-center space-x-2 mb-2">
+                            <span class="px-2 py-0.5 rounded bg-orange-500/20 border border-orange-500/40 text-orange-400 text-xs font-display font-bold">FIGHTING</span>
+                            <span class="px-2 py-0.5 rounded bg-red-500/20 border border-red-500/40 text-red-400 text-xs font-display font-bold">MYTHOLOGY</span>
+                        </div>
+                        <h3 class="font-display font-bold text-2xl text-white mb-1">Black Myth</h3>
+                        <p class="text-gray-400 text-sm font-light">Prompt: "Chinese mythology action game with photorealistic character models and boss fights"</p>
+                        <div class="flex items-center mt-4 space-x-4 text-xs text-gray-500 font-display uppercase tracking-wider">
+                            <span class="flex items-center"><svg class="w-4 h-4 mr-1" fill="currentColor" viewBox="0 0 24 24"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z"/></svg> 8K Textures</span>
+                            <span class="flex items-center"><svg class="w-4 h-4 mr-1" fill="currentColor" viewBox="0 0 24 24"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z"/></svg> Hair Works</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Game Card 6: Medieval Combat -->
+                <div class="game-card relative rounded-2xl overflow-hidden aspect-[4/5] group cursor-pointer scroll-reveal" style="transition-delay: 200ms;">
+                    <img src="https://blog-uploads.eneba.games/uploads/2025/08/the-elder-scrolls-iv-oblivion-remastered-using-a-fireball-on-a-highwayman.jpg" 
+                         alt="Medieval Combat" 
+                         class="w-full h-full object-cover transition-transform duration-700">
+                    <div class="absolute inset-0 bg-gradient-to-t from-black via-black/40 to-transparent opacity-80"></div>
+                    <div class="card-overlay absolute inset-0 bg-red-500/20 flex items-center justify-center">
+                        <span class="px-6 py-3 rounded-full bg-white/10 backdrop-blur-md border border-white/30 text-white font-display font-bold uppercase tracking-wider">View Build Log</span>
+                    </div>
+                    <div class="absolute bottom-0 left-0 right-0 p-6">
+                        <div class="flex items-center space-x-2 mb-2">
+                            <span class="px-2 py-0.5 rounded bg-red-500/20 border border-red-500/40 text-red-400 text-xs font-display font-bold">RPG</span>
+                            <span class="px-2 py-0.5 rounded bg-yellow-500/20 border border-yellow-500/40 text-yellow-400 text-xs font-display font-bold">MEDIEVAL</span>
+                        </div>
+                        <h3 class="font-display font-bold text-2xl text-white mb-1">Iron Oath</h3>
+                        <p class="text-gray-400 text-sm font-light">Prompt: "Hardcore medieval RPG with realistic sword combat, castles, and magic systems"</p>
+                        <div class="flex items-center mt-4 space-x-4 text-xs text-gray-500 font-display uppercase tracking-wider">
+                            <span class="flex items-center"><svg class="w-4 h-4 mr-1" fill="currentColor" viewBox="0 0 24 24"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z"/></svg> Physics</span>
+                            <span class="flex items-center"><svg class="w-4 h-4 mr-1" fill="currentColor" viewBox="0 0 24 24"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z"/></svg> 120 FPS</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="mt-12 text-center">
+                <p class="text-gray-500 text-sm font-display uppercase tracking-widest mb-4">All visuals generated by xGameBuilder AI — no manual asset creation</p>
+            </div>
+        </div>
+    </section>
+
+    <!-- AI Agents Section -->
+    <section id="agents" class="relative py-24 bg-gradient-to-b from-transparent via-white/[0.02] to-transparent">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="text-center mb-16 scroll-reveal">
+                <span class="text-neon-purple font-display font-bold uppercase tracking-widest text-sm mb-2 block">The Squad</span>
+                <h2 class="font-display font-bold text-4xl md:text-5xl mb-6 text-white">6 AI Agents. <span class="gradient-text">One Mission.</span></h2>
+                <p class="text-gray-400 text-lg max-w-2xl mx-auto">Each agent specializes in a core discipline of AAA game development. They collaborate autonomously to build your game from zero.</p>
+            </div>
+
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                <!-- Agent Cards with Character Images -->
+                <div class="agent-card glass-panel rounded-2xl overflow-hidden border border-white/10 hover:border-neon-blue/50 transition-all group scroll-reveal">
+                    <div class="h-48 overflow-hidden relative">
+                        <img src="https://cdna.artstation.com/p/assets/images/images/084/381/176/4k/aaa-game-art-studio-a-1-ni.jpg?1738231562" 
+                             alt="Character Concept Art" 
+                             class="w-full h-full object-cover opacity-60 group-hover:opacity-80 transition-opacity group-hover:scale-110 duration-500">
+                        <div class="absolute inset-0 bg-gradient-to-t from-[#0a0a0f] to-transparent"></div>
+                        <div class="absolute top-4 left-4 w-12 h-12 rounded-xl bg-blue-500/20 border border-blue-500/40 flex items-center justify-center agent-icon backdrop-blur-md">
+                            <svg class="w-6 h-6 text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z"></path></svg>
+                        </div>
+                    </div>
+                    <div class="p-6">
+                        <div class="flex items-center justify-between mb-3">
+                            <h3 class="font-display font-bold text-xl text-white">Concept Architect</h3>
+                            <span class="text-blue-400 font-display font-bold text-sm">01</span>
+                        </div>
+                        <p class="text-gray-400 text-sm leading-relaxed mb-4">Writes the Game Design Document, defines mechanics, narrative arcs, and emotional beats from your prompt.</p>
+                        <div class="flex flex-wrap gap-2">
+                            <span class="px-2 py-1 rounded bg-blue-500/10 text-blue-400 text-xs border border-blue-500/20 font-display">GDD</span>
+                            <span class="px-2 py-1 rounded bg-blue-500/10 text-blue-400 text-xs border border-blue-500/20 font-display">Lore</span>
+                            <span class="px-2 py-1 rounded bg-blue-500/10 text-blue-400 text-xs border border-blue-500/20 font-display">Mechanics</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="agent-card glass-panel rounded-2xl overflow-hidden border border-white/10 hover:border-neon-purple/50 transition-all group scroll-reveal" style="transition-delay: 100ms;">
+                    <div class="h-48 overflow-hidden relative">
+                        <img src="https://img.freepik.com/premium-photo/fantastic-epic-magica-landscape-mountains-summer-nature-mystic-forest-gaming-rpg-background_636456-93.jpg?w=360" 
+                             alt="World Environment" 
+                             class="w-full h-full object-cover opacity-60 group-hover:opacity-80 transition-opacity group-hover:scale-110 duration-500">
+                        <div class="absolute inset-0 bg-gradient-to-t from-[#0a0a0f] to-transparent"></div>
+                        <div class="absolute top-4 left-4 w-12 h-12 rounded-xl bg-purple-500/20 border border-purple-500/40 flex items-center justify-center agent-icon backdrop-blur-md">
+                            <svg class="w-6 h-6 text-purple-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3.055 11H5a2 2 0 012 2v1a2 2 0 002 2 2 2 0 012 2v2.945M8 3.935V5.5A2.5 2.5 0 0010.5 8h.5a2 2 0 012 2 2 2 0 104 0 2 2 0 012-2h1.064M15 20.488V18a2 2 0 012-2h3.064M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+                        </div>
+                    </div>
+                    <div class="p-6">
+                        <div class="flex items-center justify-between mb-3">
+                            <h3 class="font-display font-bold text-xl text-white">World Builder</h3>
+                            <span class="text-purple-400 font-display font-bold text-sm">02</span>
+                        </div>
+                        <p class="text-gray-400 text-sm leading-relaxed mb-4">Generates vast 3D environments, terrain, architecture, and atmospheric lighting using procedural + neural methods.</p>
+                        <div class="flex flex-wrap gap-2">
+                            <span class="px-2 py-1 rounded bg-purple-500/10 text-purple-400 text-xs border border-purple-500/20 font-display">Terrain</span>
+                            <span class="px-2 py-1 rounded bg-purple-500/10 text-purple-400 text-xs border border-purple-500/20 font-display">Biomes</span>
+                            <span class="px-2 py-1 rounded bg-purple-500/10 text-purple-400 text-xs border border-purple-500/20 font-display">Lighting</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="agent-card glass-panel rounded-2xl overflow-hidden border border-white/10 hover:border-neon-cyan/50 transition-all group scroll-reveal" style="transition-delay: 200ms;">
+                    <div class="h-48 overflow-hidden relative">
+                        <img src="https://cdna.artstation.com/p/marketplace/presentation_assets/001/900/838/large/file.jpg?1660056160" 
+                             alt="3D Character Model" 
+                             class="w-full h-full object-cover opacity-60 group-hover:opacity-80 transition-opacity group-hover:scale-110 duration-500">
+                        <div class="absolute inset-0 bg-gradient-to-t from-[#0a0a0f] to-transparent"></div>
+                        <div class="absolute top-4 left-4 w-12 h-12 rounded-xl bg-cyan-500/20 border border-cyan-500/40 flex items-center justify-center agent-icon backdrop-blur-md">
+                            <svg class="w-6 h-6 text-cyan-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10"></path></svg>
+                        </div>
+                    </div>
+                    <div class="p-6">
+                        <div class="flex items-center justify-between mb-3">
+                            <h3 class="font-display font-bold text-xl text-white">Asset Forge</h3>
+                            <span class="text-cyan-400 font-display font-bold text-sm">03</span>
+                        </div>
+                        <p class="text-gray-400 text-sm leading-relaxed mb-4">Creates game-ready 3D models, PBR textures, and materials. Characters, weapons, props — all unique to your game.</p>
+                        <div class="flex flex-wrap gap-2">
+                            <span class="px-2 py-1 rounded bg-cyan-500/10 text-cyan-400 text-xs border border-cyan-500/20 font-display">Models</span>
+                            <span class="px-2 py-1 rounded bg-cyan-500/10 text-cyan-400 text-xs border border-cyan-500/20 font-display">Textures</span>
+                            <span class="px-2 py-1 rounded bg-cyan-500/10 text-cyan-400 text-xs border border-cyan-500/20 font-display">PBR</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="agent-card glass-panel rounded-2xl overflow-hidden border border-white/10 hover:border-pink-500/50 transition-all group scroll-reveal">
+                    <div class="h-48 overflow-hidden relative">
+                        <img src="https://blog-uploads.eneba.games/uploads/2026/01/the-outer-worlds-2-shooting.webp" 
+                             alt="Combat Animation" 
+                             class="w-full h-full object-cover opacity-60 group-hover:opacity-80 transition-opacity group-hover:scale-110 duration-500">
+                        <div class="absolute inset-0 bg-gradient-to-t from-[#0a0a0f] to-transparent"></div>
+                        <div class="absolute top-4 left-4 w-12 h-12 rounded-xl bg-pink-500/20 border border-pink-500/40 flex items-center justify-center agent-icon backdrop-blur-md">
+                            <svg class="w-6 h-6 text-pink-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14.752 11.168l-3.197-2.132A1 1 0 0010 9.87v4.263a1 1 0 001.555.832l3.197-2.132a1 1 0 000-1.664z"></path><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+                        </div>
+                    </div>
+                    <div class="p-6">
+                        <div class="flex items-center justify-between mb-3">
+                            <h3 class="font-display font-bold text-xl text-white">Animation Engine</h3>
+                            <span class="text-pink-400 font-display font-bold text-sm">04</span>
+                        </div>
+                        <p class="text-gray-400 text-sm leading-relaxed mb-4">Generates fluid combat animations, idle behaviors, and cutscenes using neural motion synthesis.</p>
+                        <div class="flex flex-wrap gap-2">
+                            <span class="px-2 py-1 rounded bg-pink-500/10 text-pink-400 text-xs border border-pink-500/20 font-display">Combat</span>
+                            <span class="px-2 py-1 rounded bg-pink-500/10 text-pink-400 text-xs border border-pink-500/20 font-display">Mocap</span>
+                            <span class="px-2 py-1 rounded bg-pink-500/10 text-pink-400 text-xs border border-pink-500/20 font-display">Cutscenes</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="agent-card glass-panel rounded-2xl overflow-hidden border border-white/10 hover:border-yellow-500/50 transition-all group scroll-reveal" style="transition-delay: 100ms;">
+                    <div class="h-48 overflow-hidden relative">
+                        <img src="https://blog-uploads.eneba.games/uploads/2025/08/kingdom-come-deliverance-2-with-hans.jpg" 
+                             alt="Cinematic Scene" 
+                             class="w-full h-full object-cover opacity-60 group-hover:opacity-80 transition-opacity group-hover:scale-110 duration-500">
+                        <div class="absolute inset-0 bg-gradient-to-t from-[#0a0a0f] to-transparent"></div>
+                        <div class="absolute top-4 left-4 w-12 h-12 rounded-xl bg-yellow-500/20 border border-yellow-500/40 flex items-center justify-center agent-icon backdrop-blur-md">
+                            <svg class="w-6 h-6 text-yellow-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19V6l12-3v13M9 19c0 1.105-1.343 2-3 2s-3-.895-3-2 1.343-2 3-2 3 .895 3 2zm12-3c0 1.105-1.343 2-3 2s-3-.895-3-2 1.343-2 3-2 3 .895 3 2zM9 10l12-3"></path></svg>
+                        </div>
+                    </div>
+                    <div class="p-6">
+                        <div class="flex items-center justify-between mb-3">
+                            <h3 class="font-display font-bold text-xl text-white">Audio Synthesis</h3>
+                            <span class="text-yellow-400 font-display font-bold text-sm">05</span>
+                        </div>
+                        <p class="text-gray-400 text-sm leading-relaxed mb-4">Composes adaptive soundtracks, realistic SFX, and dynamic voiceovers tailored to your game's tone.</p>
+                        <div class="flex flex-wrap gap-2">
+                            <span class="px-2 py-1 rounded bg-yellow-500/10 text-yellow-400 text-xs border border-yellow-500/20 font-display">Music</span>
+                            <span class="px-2 py-1 rounded bg-yellow-500/10 text-yellow-400 text-xs border border-yellow-500/20 font-display">SFX</span>
+                            <span class="px-2 py-1 rounded bg-yellow-500/10 text-yellow-400 text-xs border border-yellow-500/20 font-display">Voice</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="agent-card glass-panel rounded-2xl overflow-hidden border border-white/10 hover:border-green-500/50 transition-all group scroll-reveal" style="transition-delay: 200ms;">
+                    <div class="h-48 overflow-hidden relative">
+                        <img src="https://kimi-web-img.moonshot.cn/img/blog-uploads.eneba.games/044e32401e4768b4955428fa41e89a6f4c8bb136.jpg" 
+                             alt="Gameplay Testing" 
+                             class="w-full h-full object-cover opacity-60 group-hover:opacity-80 transition-opacity group-hover:scale-110 duration-500">
+                        <div class="absolute inset-0 bg-gradient-to-t from-[#0a0a0f] to-transparent"></div>
+                        <div class="absolute top-4 left-4 w-12 h-12 rounded-xl bg-green-500/20 border border-green-500/40 flex items-center justify-center agent-icon backdrop-blur-md">
+                            <svg class="w-6 h-6 text-green-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+                        </div>
+                    </div>
+                    <div class="p-6">
+                        <div class="flex items-center justify-between mb-3">
+                            <h3 class="font-display font-bold text-xl text-white">QA & Polish</h3>
+                            <span class="text-green-400 font-display font-bold text-sm">06</span>
+                        </div>
+                        <p class="text-gray-400 text-sm leading-relaxed mb-4">Automated testing, bug detection, performance optimization, and platform certification prep.</p>
+                        <div class="flex flex-wrap gap-2">
+                            <span class="px-2 py-1 rounded bg-green-500/10 text-green-400 text-xs border border-green-500/20 font-display">Testing</span>
+                            <span class="px-2 py-1 rounded bg-green-500/10 text-green-400 text-xs border border-green-500/20 font-display">Optimize</span>
+                            <span class="px-2 py-1 rounded bg-green-500/10 text-green-400 text-xs border border-green-500/20 font-display">Ship</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Tech Specs Bar -->
+    <section id="tech" class="relative py-20 border-y border-white/10 bg-black/40">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="grid grid-cols-2 md:grid-cols-4 gap-8 text-center scroll-reveal">
+                <div>
+                    <div class="font-display font-bold text-4xl md:text-5xl text-white mb-2">4K<span class="text-neon-blue">+</span></div>
+                    <div class="text-gray-500 font-display uppercase tracking-widest text-sm">Resolution</div>
+                </div>
+                <div>
+                    <div class="font-display font-bold text-4xl md:text-5xl text-white mb-2">60<span class="text-neon-purple">FPS</span></div>
+                    <div class="text-gray-500 font-display uppercase tracking-widest text-sm">Target Framerate</div>
+                </div>
+                <div>
+                    <div class="font-display font-bold text-4xl md:text-5xl text-white mb-2">Any<span class="text-neon-cyan"></span></div>
+                    <div class="text-gray-500 font-display uppercase tracking-widest text-sm">Platform</div>
+                </div>
+                <div>
+                    <div class="font-display font-bold text-4xl md:text-5xl text-white mb-2"><span class="text-accent">0</span>$</div>
+                    <div class="text-gray-500 font-display uppercase tracking-widest text-sm">Asset Store</div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Demo CTA -->
+    <section id="demo" class="relative py-32 overflow-hidden">
+        <div class="absolute inset-0">
+            <img src="https://kimi-web-img.moonshot.cn/img/cdna.artstation.com/3bdb53e3cf79bdd4bcd7b4dcdcc7f975de603904.jpg" 
+                 alt="Stylized Character Background" 
+                 class="w-full h-full object-cover opacity-20">
+            <div class="absolute inset-0 bg-gradient-to-r from-[#050508] via-[#050508]/80 to-[#050508]"></div>
+        </div>
+        
+        <div class="relative z-10 max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
+            <div class="glass-panel rounded-3xl p-12 md:p-16 border border-white/10 rarity-glow scroll-reveal">
+                <div class="inline-flex items-center px-4 py-2 rounded-full bg-neon-cyan/10 border border-neon-cyan/30 mb-8">
+                    <span class="w-2 h-2 bg-neon-cyan rounded-full mr-2 animate-pulse"></span>
+                    <span class="text-neon-cyan text-sm font-display font-bold uppercase tracking-widest">Live Build Available</span>
+                </div>
+                
+                <h2 class="font-display font-bold text-4xl md:text-6xl mb-6">
+                    Don't Believe It? <br><span class="gradient-text">Play It.</span>
+                </h2>
+                
+                <p class="text-gray-400 text-xl mb-10 max-w-2xl mx-auto">
+                    The demo lets you type a game concept and watch xGameBuilder generate a playable vertical slice in real-time. No code. No art skills. Just your idea.
+                </p>
+                
+                <div class="flex flex-col sm:flex-row items-center justify-center gap-4">
+                    <a href="https://demo.xgamebuilder.com" target="_blank" class="group relative px-12 py-5 rounded-lg bg-gradient-to-r from-neon-blue to-neon-purple text-white font-display font-bold text-xl hover:shadow-2xl hover:shadow-neon-blue/50 transition-all transform hover:scale-105 flex items-center tracking-wide">
+                        <svg class="w-6 h-6 mr-3" fill="currentColor" viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg>
+                        <span>LAUNCH DEMO</span>
+                    </a>
+                </div>
+                
+                <div class="mt-8 text-gray-500 font-display text-sm tracking-wider">demo.xgamebuilder.com</div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Waitlist -->
+    <section id="waitlist" class="relative py-32">
+        <div class="max-w-2xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="text-center mb-12 scroll-reveal">
+                <span class="text-accent font-display font-bold uppercase tracking-widest text-sm mb-2 block">Limited Beta</span>
+                <h2 class="font-display font-bold text-4xl md:text-5xl mb-6 text-white">Get <span class="gradient-text">Early Access</span></h2>
+                <p class="text-gray-400 text-lg">Join the waitlist. First 1,000 get  developer pricing.</p>
+            </div>
+            
+            <div class="glass-panel rounded-2xl p-8 md:p-10 border border-white/10 scroll-reveal">
+                <form class="space-y-5" onsubmit="event.preventDefault(); this.innerHTML='<div class=\'text-center py-8\'><div class=\'text-4xl mb-4\'>🎮</div><h3 class=\'font-display font-bold text-2xl text-white mb-2\'>You\'re In!</h3><p class=\'text-gray-400\'>Check your inbox for confirmation.</p></div>';">
+                    <div>
+                        <label class="block text-gray-400 text-xs font-display font-bold uppercase tracking-widest mb-2">Gamertag / Name</label>
+                        <input type="text" class="waitlist-input w-full bg-black/50 border border-white/10 rounded-xl px-5 py-4 text-white focus:border-neon-blue focus:outline-none transition-all text-lg" placeholder="xX_DarkSlayer_Xx" required>
+                    </div>
+                    <div>
+                        <label class="block text-gray-400 text-xs font-display font-bold uppercase tracking-widest mb-2">Email</label>
+                        <input type="email" class="waitlist-input w-full bg-black/50 border border-white/10 rounded-xl px-5 py-4 text-white focus:border-neon-blue focus:outline-none transition-all text-lg" placeholder="you@email.com" required>
+                    </div>
+                    <div>
+                        <label class="block text-gray-400 text-xs font-display font-bold uppercase tracking-widest mb-2">Dream Game Genre</label>
+                        <select class="waitlist-input w-full bg-black/50 border border-white/10 rounded-xl px-5 py-4 text-white focus:border-neon-blue focus:outline-none transition-all text-lg appearance-none cursor-pointer">
+                            <option>Open World RPG</option>
+                            <option>FPS / Shooter</option>
+                            <option>Survival Horror</option>
+                            <option>Fighting Game</option>
+                            <option>Strategy / RTS</option>
+                            <option>Racing</option>
+                            <option>Something Wild</option>
+                        </select>
+                    </div>
+                    
+                    <button type="submit" class="w-full py-5 rounded-xl bg-gradient-to-r from-neon-blue via-neon-purple to-accent text-white font-display font-bold text-xl hover:shadow-2xl hover:shadow-neon-blue/50 transition-all transform hover:scale-[1.02] tracking-wider uppercase">
+                        Claim My Spot
+                    </button>
+                    
+                    <p class="text-gray-600 text-xs text-center font-display">No spam. Just game updates. Unsubscribe anytime.</p>
+                </form>
+            </div>
+        </div>
+    </section>
+
+    <!-- Footer -->
+    <footer class="border-t border-white/10 py-12 bg-black/60">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex flex-col md:flex-row justify-between items-center">
+            <div class="flex items-center space-x-3 mb-4 md:mb-0">
+                <div class="w-8 h-8 rounded-lg bg-gradient-to-br from-neon-blue to-neon-purple flex items-center justify-center">
+                    <span class="font-display font-bold text-sm text-white">x</span>
+                </div>
+                <span class="font-display font-bold text-xl text-white">GameBuilder</span>
+            </div>
+            <div class="text-gray-600 text-sm font-display">
+                © 2026 xGameBuilder. Autonomous AAA Game Generation.
+            </div>
+        </div>
+    </footer>
+
+    <script>
+        // Scroll reveal
+        const observer = new IntersectionObserver((entries) => {
+            entries.forEach(entry => {
+                if (entry.isIntersecting) {
+                    entry.target.classList.add('active');
+                }
+            });
+        }, { threshold: 0.1 });
+
+        document.querySelectorAll('.scroll-reveal').forEach((el) => observer.observe(el));
+
+        // Smooth scroll
+        document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+            anchor.addEventListener('click', function (e) {
+                e.preventDefault();
+                const target = document.querySelector(this.getAttribute('href'));
+                if (target) target.scrollIntoView({ behavior: 'smooth', block: 'start' });
+            });
+        });
+    </script>
+</body>
+</html>
